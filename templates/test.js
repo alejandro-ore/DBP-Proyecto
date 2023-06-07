@@ -1,21 +1,17 @@
-var down=false;
+var matrix; //matriz de imagen
+const n=90;const m=160; //dimensiones de la matriz
+const size=10; //tamaño de los pixeles individuales
 
-var R=0;var G=0;var B=0;
+var R=0;var G=0;var B=0; //colores actuales del 'pincel'
 
-function changeColor(){
-    R=document.getElementById("R").value;
-    G=document.getElementById("G").value;
-    B=document.getElementById("B").value;
-}
+var down=false; //para poder pintar arrastrando el mouse
 
-function renderMatrix(){
-    const n=90;const m=160;
-    var matrix=Array.from(
+function startup(){
+    matrix=Array.from(
         {length: m},
         ()=>new Array(n).fill([255,255,255])
     );
-
-    const size=10;
+    
     var args=``;
     for(let i=0;i<m;i++){
         args+=` ${size}px`;
@@ -25,7 +21,9 @@ function renderMatrix(){
     document.styleSheets[0].cssRules[0].style.setProperty('grid-template-rows',args);
     document.styleSheets[0].cssRules[1].style.setProperty('width',`${size}px`);
     document.styleSheets[0].cssRules[1].style.setProperty('height',`${size}px`);
+}
 
+function renderMatrix(){
     const canvas=document.getElementById("canvas");
     canvas.innerHTML=``;
 
@@ -56,7 +54,6 @@ function renderMatrix(){
         document.getElementById(`${i}`).addEventListener("mousedown",function(){mouseDown(i)});
         document.getElementById(`${i}`).addEventListener("mouseover",function(){mouseOver(i)});
     }
-
 }
 
 function mouseDown(id){
@@ -70,14 +67,21 @@ function mouseOver(id){
     }
 }
 
+document.addEventListener("mouseup",function(){
+    down=false;
+})
+
+function changeColor(){
+    R=document.getElementById("R").value;
+    G=document.getElementById("G").value;
+    B=document.getElementById("B").value;
+}
+
 function colorSwitch(id){
     var pixel=document.getElementById(id);
     if(pixel.className==="grid-container") return;
     pixel.style.setProperty("background",`rgb(${R},${G},${B})`);
 }
 
+startup();
 renderMatrix();
-
-document.addEventListener("mouseup",function(){
-    down=false;
-})
