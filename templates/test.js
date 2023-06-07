@@ -1,10 +1,18 @@
 var down=false;
 
+var R=0;var G=0;var B=0;
+
+function changeColor(){
+    R=document.getElementById("R").value;
+    G=document.getElementById("G").value;
+    B=document.getElementById("B").value;
+}
+
 function renderMatrix(){
     const n=90;const m=160;
     var matrix=Array.from(
         {length: m},
-        ()=>new Array(n).fill([0,0,0])
+        ()=>new Array(n).fill([255,255,255])
     );
 
     const size=10;
@@ -45,8 +53,8 @@ function renderMatrix(){
     canvas.innerHTML=content;
 
     for(let i=1;i<id;i++){
-        document.getElementById(`${i}`).addEventListener("mousedown",mouseDown(i));
-        document.getElementById(`${i}`).addEventListener("mouseover",mouseOver(i));
+        document.getElementById(`${i}`).addEventListener("mousedown",function(){mouseDown(i)});
+        document.getElementById(`${i}`).addEventListener("mouseover",function(){mouseOver(i)});
     }
 
 }
@@ -65,19 +73,10 @@ function mouseOver(id){
 function colorSwitch(id){
     var pixel=document.getElementById(id);
     if(pixel.className==="grid-container") return;
-    if(pixel.style.getPropertyValue("background")==="rgb(0, 0, 0)"){
-        pixel.style.setProperty("background","rgb(255,255,255)");
-    }
-    else{
-        pixel.style.setProperty("background","rgb(0,0,0)");
-    }
+    pixel.style.setProperty("background",`rgb(${R},${G},${B})`);
 }
 
 renderMatrix();
-
-document.body.onclick = function(anEvent){
-    colorSwitch(anEvent.target.id);
-};
 
 document.addEventListener("mouseup",function(){
     down=false;
