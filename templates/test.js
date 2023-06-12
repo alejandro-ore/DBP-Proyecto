@@ -12,13 +12,16 @@ function startup(){
         ()=>new Array(n).fill([255,255,255])
     );
     
-    var args=``;
-    for(let i=0;i<m;i++){
-        args+=` ${size}px`;
+    var args1=``;var args2=``;
+    for(let i=0;i<n;i++){
+        args1+=` ${size}px`;
     }
-    
-    document.styleSheets[0].cssRules[0].style.setProperty('grid-template-columns',args);
-    document.styleSheets[0].cssRules[0].style.setProperty('grid-template-rows',args);
+    for(let i=0;i<m;i++){
+        args2+=` ${size}px`;
+    }
+
+    document.styleSheets[0].cssRules[0].style.setProperty('grid-template-rows',args1);
+    document.styleSheets[0].cssRules[0].style.setProperty('grid-template-columns',args2);
     document.styleSheets[0].cssRules[1].style.setProperty('width',`${size}px`);
     document.styleSheets[0].cssRules[1].style.setProperty('height',`${size}px`);
 }
@@ -81,6 +84,12 @@ function colorSwitch(id){
     var pixel=document.getElementById(id);
     if(pixel.className==="grid-container") return;
     pixel.style.setProperty("background",`rgb(${R},${G},${B})`);
+}
+
+function clearCanvas(){
+    for(let i=1;i<=m*n;i++){
+        document.getElementById(`${i}`).style.setProperty("background","rgb(255,255,255)");
+    }
 }
 
 startup();
