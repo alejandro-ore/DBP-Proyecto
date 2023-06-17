@@ -24,20 +24,13 @@ class Frame(db.Model):
     id: int
     data: str
     id_anim: int
+    frame_n: int
 
     id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     data=db.Column(db.Text,nullable=False)
+    frame_n=db.Column(db.Integer,nullable=False)
     id_anim=db.Column(db.Integer,db.ForeignKey('animation.id'))
     anim=db.relationship('Animation',backref='frames')
-
-
-@app.route('/test')
-def calc():
-    return render_template('test.html')
-
-@app.route('/test.js')
-def test_js():
-    return render_template('test.js')
 
 
 @app.route('/animations',methods=['GET','POST'])
@@ -54,7 +47,7 @@ def get_animations():
     return 'FAILURE'
     
 @app.route('/animations/<id>',methods=['GET'])
-def get_animation_id():
+def get_animation_id(id):
     data=Animation.query.get_or_404(id)
     return jsonify(data)
 
@@ -67,13 +60,13 @@ def get_frames():
     if request.method=='POST':
         json=request.get_json()
         animation=Animation.query.get_or_404(json['id_anim'])
-        frame=Frame(data=json['data'],anim=animation)
+        frame=Frame(data=json['data'],frame_n=json['frame_n'],anim=animation)
         db.session.add(frame)
         db.session.commit()
-        return 'SUCCESS'
+        return str(frame.id)
 
 @app.route('/frames/<id>',methods=['GET'])
-def get_frame_id():
+def get_frame_id(id):
     data=Frame.query.get_or_404(id)
     return jsonify(data)
 

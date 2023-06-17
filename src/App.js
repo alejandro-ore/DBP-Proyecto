@@ -1,6 +1,17 @@
 import React, {useEffect,useState} from 'react';
 import './App.css';
 
+//matriz de imagen
+const n=90;const m=160;
+var matrices=[Array.from(
+  {length: n},
+  ()=>new Array(m).fill([255,255,255])
+)];
+console.log(matrices);
+const size=10; //tamaño de los pixeles individuales
+
+var currentFrame=0; //frame actual
+
 const colors={
   '0':'rgb(255,255,255)', //blanco
   '1':'rgb(255,23,23)', //rojo
@@ -19,8 +30,17 @@ const color_ids={
   'rgb(20, 20, 20)':'5' //negro
 };
 
-var project_id;
-var frame_ids=[];
+const rgb2_to_ids={
+  255:'0', //blanco
+  23:'1', //rojo
+  0:'2', //amarillo
+  50:'3', //verde
+  200:'4', //azul
+  20:'5' //negro
+}
+
+var project_id=-1;
+var frame_ids=[-1];var deleted_frames=[];
 
 function start_project(){
   var data={'name':'unnamed'};
@@ -34,6 +54,7 @@ function start_project(){
   .then(text=>{
     project_id=parseInt(text);
     console.log(project_id);
+    saveFrame(0);
   })
 }
 
@@ -47,13 +68,14 @@ function get_by_id(){
   })
 }
 
-function save(){ //mensaje para jano: si por algun motivo deja de funcionar es porque background en verdad se llama background-color???
+function saveFrame(frame_n){ // mensaje para val: no
   var str="";
-  for(let i=1;i<=m*n;i++){
-    var pixel=document.getElementById(`${i}`);
-    str+=color_ids[pixel.style.getPropertyValue("background-color")];
+  for(let i=0;i<n;i++){
+    for(let j=0;j<m;j++){
+      str+=`${rgb2_to_ids[matrices[frame_n][i][j][2]]}`;
+    }
   }
-  var data={'data':str,'id_anim':project_id};
+  var data={'data':str,'id_anim':project_id,'frame_n':frame_n};
   fetch('http://localhost:5000/frames',{
     method:'POST',
     body:JSON.stringify(data),
@@ -62,41 +84,67 @@ function save(){ //mensaje para jano: si por algun motivo deja de funcionar es p
     }
   }).then(response=>response.text())
   .then(text=>{
-    if(text!=='SUCCESS'){
-      alert("failure");
+    frame_ids[frame_n]=text;
+  })
+}
+
+function saveProject(){
+  var ids=1;
+  for(let i=0;i<n;i++){
+    for(let j=0;j<m;j++){
+      var pixel=document.getElementById(ids);
+      matrices[currentFrame][i][j]=rgb(pixel.style.getPropertyValue("background-color"));
+      ids++;
+    }
+  }
+  for(let i=0;i<matrices.length;i++){
+    saveFrame(i);
+  }
+}
+
+function loadFrame(frame_n){
+  fetch(`http://localhost:5000/frames/${frame_ids[frame_n]}`)
+  .then(response=>response.json())
+  .then(frame=>{
+    var data=frame.data;
+    var x=0;
+    for(let i=0;i<n;i++){
+      for(let j=0;j<m;j++){
+        matrices[frame_n][i][j]=rgb(colors[data[x]]);
+        x++;
+      }
     }
   })
 }
 
-function load(){
-  fetch('http://localhost:5000/frames')
-  .then(response=>response.json())
-  .then(frame=>{
-    return frame.data;
-  })
+function loadProject(){
+  for(let i=0;i<matrices.length;i++){
+    loadFrame(i);
+  }
+  var id=1;
+  for(let i=0;i<n;i++){
+    for(let j=0;j<m;j++){
+      var pixel=document.getElementById(id);id++;
+      pixel.style.setProperty('background-color',colors[rgb2_to_ids[matrices[currentFrame][i][j][2]]]);
+    }
+  }
 }
-
-//matriz de imagen
-const n=90;const m=160;
-var matrices=[Array.from(
-  {length: m},
-  ()=>new Array(n).fill([255,255,255])
-)];
-console.log(matrices);
-const size=10; //tamaño de los pixeles individuales
-
-var currentFrame=0; //frame actual
 
 function rgb(s){
   var new_s=(s.replace('rgb(','').replace(')','')).split(',');
+  for(let i=0;i<new_s.length;i++){
+    new_s[i]=parseInt(new_s[i].replace(' ',''));
+  }
   return new_s;
 }
 
 function changeFrame(frame_n){
   if(frame_n>=matrices.length) return;
+  if(frame_n<0) return;
+  document.getElementById('frameCount').innerHTML=`${frame_n+1}/${matrices.length}`;
   var id=1;
-  for(let i=0;i<m;i++){
-    for(let j=0;j<n;j++){
+  for(let i=0;i<n;i++){
+    for(let j=0;j<m;j++){
       var pixel=document.getElementById(id);
       matrices[currentFrame][i][j]=rgb(pixel.style.getPropertyValue("background-color"));
       pixel.style.setProperty("background-color",`rgb(
@@ -107,15 +155,18 @@ function changeFrame(frame_n){
       id++;
     }
   }
+  console.log(matrices[currentFrame]);
   currentFrame=frame_n;
 }
 
 function newFrame(){ //para añadir nuevos frames
-  matrices.push(Array.from(
-    {length: m},
-    ()=>new Array(n).fill([255,255,255])
+  matrices.splice(currentFrame+1,0,Array.from(
+    {length: n},
+    ()=>new Array(m).fill([255,255,255])
   ));
+  frame_ids.splice(currentFrame+1,0,-1);
   changeFrame(currentFrame+1);
+  saveProject();
 }
 
 var R=20;var G=20;var B=20; //colores actuales del 'pincel'
@@ -144,6 +195,12 @@ function clearCanvas(){
     }
 }
 
+function FrameCount({}){
+  return(
+    <div id='frameCount'>{currentFrame+1}/{matrices.length}</div>
+  );
+}
+
 function Item({item_id}){
   [isMouseDown, setIsMouseDown] = useState(false);
   [interactingItemIds, setInteractingItemIds] = useState([]);
@@ -155,9 +212,9 @@ function Item({item_id}){
     }
   };
 
-  const x=(item_id-1)%m;
-  const y=parseInt((item_id-1)/m);
-
+  const x=parseInt((item_id-1)/m);
+  const y=(item_id-1)%m;
+  
   var grid_item={
     backgroundColor:`rgb(
       ${matrices[currentFrame][x][y][0]},
@@ -198,12 +255,6 @@ function App(){
     margin: '0 auto',
   };
 
-  const ui_container={
-    display:'grid',
-    marginTop: '12px',
-    gridTemplateColumns: 'auto auto auto'
-  };
-
   [isMouseDown,setIsMouseDown]=useState(false);
   [interactingItemIds,setInteractingItemIds]=useState([]);
   [inCanvas,setInCanvas]=useState(false);
@@ -220,6 +271,26 @@ function App(){
 
   const isIncanvas = (bool) => {
     setInCanvas(bool);
+  };
+
+  const handleKeyDown=(event)=>{
+    if(event.key==='Enter'){
+      newFrame();
+    }
+    else if(event.key==='ArrowRight'){ //nextframe
+      changeFrame(currentFrame+1);
+    }
+    else if(event.key==='ArrowLeft'){ //prevframe
+      changeFrame(currentFrame-1);
+    }
+    else if(event.ctrlKey){ //shortcut keybinds
+      if(event.key==='z'){
+        alert('ctrl+z');
+      }
+      else if(event.key==='y'){
+        alert('ctrl+y');
+      }
+    }
   };
 
   const renderItems=()=>{
@@ -239,9 +310,11 @@ function App(){
   var result=(
     <>
       <title>paint test</title>
-      <div className='ui_container' style={ui_container}
+      <div className='ui_container'
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
       >
         <div className='toolbox'>
           tools
@@ -259,14 +332,17 @@ function App(){
           <br/>
           <button onClick={clearCanvas}>clear canvas</button>
           <br/>
-          <button onClick={save}>save</button>
+          <button onClick={saveProject}>save</button>
           <br/>
-          <button onClick={function(){}}>load</button>
+          <button onClick={loadProject}>load</button>
           <br/>
           <button onClick={newFrame}>new frame</button>
           <br/>
+          <button onClick={function(){changeFrame(currentFrame+1)}}>next frame</button>
+          <br/>
           <button onClick={function(){changeFrame(currentFrame-1)}}>previous frame</button>
           <br/>
+          <FrameCount/>
         </div>
       </div>
     </>

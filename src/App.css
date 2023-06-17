@@ -44,3 +44,11 @@ body{
   color:white;
   text-shadow: 1px;
 }
+
+.ui_container{
+  display: grid;
+  margin-top: 12px;
+  grid-template-columns: auto auto auto;
+  outline: none;
+  box-shadow: 0 0 0 0px;
+};
