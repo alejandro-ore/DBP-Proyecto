@@ -75,9 +75,14 @@ function saveFrame(frame_n){ // mensaje para val: no
       str+=`${rgb2_to_ids[matrices[frame_n][i][j][2]]}`;
     }
   }
+  var method='POST';
   var data={'data':str,'id_anim':project_id,'frame_n':frame_n};
+  if(frame_n>=0&&frame_n<frame_ids.length&&frame_ids[frame_n]!=-1){
+    data['id']=frame_ids[frame_n];
+    method='PUT';
+  }
   fetch('http://localhost:5000/frames',{
-    method:'POST',
+    method:method,
     body:JSON.stringify(data),
     headers:{
       'Content-Type':'application/json'
@@ -173,6 +178,7 @@ var R=20;var G=20;var B=20; //colores actuales del 'pincel'
 
 var isMouseDown;var setIsMouseDown;
 var interactingItemIds=[];var setInteractingItemIds;
+var interactingCoords=[];var setInteractingCoords;
 var inCanvas;var setInCanvas;//variables para manejar el mouse
 
 var history_queue=[];var undo_queue=[]; //ctrl+z
@@ -202,13 +208,14 @@ function FrameCount({}){
 }
 
 function Item({item_id}){
-  [isMouseDown, setIsMouseDown] = useState(false);
-  [interactingItemIds, setInteractingItemIds] = useState([]);
+  [isMouseDown,setIsMouseDown]=useState(false);
+  [interactingItemIds,setInteractingItemIds]=useState([]);
 
-  const handleMouseEnter = (itemId) => {
+  const handleMouseEnter=(itemId)=>{
     if(isMouseDown&&inCanvas){
+      var got_color=document.getElementById(itemId).style.getPropertyValue('background-color');
+      setInteractingItemIds((prevItemIds)=>[...prevItemIds,[itemId,rgb(got_color)[2]]]);
       colorSwitch(itemId);
-      setInteractingItemIds((prevItemIds) => [...prevItemIds, itemId]);
     }
   };
 
@@ -257,6 +264,7 @@ function App(){
 
   [isMouseDown,setIsMouseDown]=useState(false);
   [interactingItemIds,setInteractingItemIds]=useState([]);
+  [interactingCoords,setInteractingCoords]=useState([]);
   [inCanvas,setInCanvas]=useState(false);
 
   const handleMouseDown = () => {
@@ -265,8 +273,16 @@ function App(){
 
   const handleMouseUp = () => {
     setIsMouseDown(false);
+    interactingItemIds.forEach(id=>{
+      const x=parseInt((id[0]-1)/m);
+      const y=(id[0]-1)%m;
+      interactingCoords.push([x,y,rgb2_to_ids[B],rgb2_to_ids[id[1]]]);
+    });
     console.log(interactingItemIds);
+    console.log(interactingCoords);
+    history_queue.push(interactingCoords); //acabar el historial para ctrl+z y ctrl+y
     setInteractingItemIds([]);
+    setInteractingCoords([]);
   };
 
   const isIncanvas = (bool) => {

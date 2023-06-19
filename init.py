@@ -52,7 +52,7 @@ def get_animation_id(id):
     return jsonify(data)
 
 
-@app.route('/frames',methods=['GET','POST'])
+@app.route('/frames',methods=['GET','POST','PUT'])
 def get_frames():
     if request.method=='GET':
         data=Frame.query.all()
@@ -62,6 +62,12 @@ def get_frames():
         animation=Animation.query.get_or_404(json['id_anim'])
         frame=Frame(data=json['data'],frame_n=json['frame_n'],anim=animation)
         db.session.add(frame)
+        db.session.commit()
+        return str(frame.id)
+    if request.method=='PUT':
+        json=request.get_json()
+        frame=Frame.query.get_or_404(json['id'])
+        frame.data=json['data']
         db.session.commit()
         return str(frame.id)
 
