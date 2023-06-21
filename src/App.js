@@ -1,4 +1,7 @@
-import React, {useEffect,useState} from 'react';
+import React,{useEffect,useState} from 'react';
+import {BrowserRouter as Router,Routes,Route,Link,useLocation} from 'react-router-dom';
+import Cookies from 'js-cookie';
+import importing from './users';
 import './App.css';
 
 //matriz de imagen
@@ -7,7 +10,6 @@ var matrices=[Array.from(
   {length: n},
   ()=>new Array(m).fill([255,255,255])
 )];
-console.log(matrices);
 const size=10; //tamaño de los pixeles individuales
 
 var currentFrame=0; //frame actual
@@ -39,11 +41,12 @@ const rgb2_to_ids={
   20:'5' //negro
 }
 
-var project_id=-1;
-var frame_ids=[-1];var deleted_frames=[];
+var project_id;
+var frame_ids=[];
+var deleted_frames=[];
 
 function start_project(){
-  var data={'name':'unnamed'};
+  var data={'email_user':importing.decode.email,'name':'unnamed'};
   fetch('http://localhost:5000/animations',{
     method:'POST',
     body:JSON.stringify(data),
@@ -57,8 +60,6 @@ function start_project(){
     saveFrame(0);
   })
 }
-
-start_project();
 
 function get_by_id(){
   fetch('http://localhost:5000/frames')
@@ -174,7 +175,7 @@ function newFrame(){ //para añadir nuevos frames
   saveProject();
 }
 
-var R=20;var G=20;var B=20; //colores actuales del 'pincel'
+var R;var G;var B; //colores actuales del 'pincel'
 
 var isMouseDown;var setIsMouseDown;
 var interactingItemIds=[];var setInteractingItemIds;
@@ -244,7 +245,35 @@ function Item({item_id}){
   );
 }
 
-function App(){
+function Component({}){
+  var location=useLocation();
+  useEffect(()=>{
+    if(window.location.pathname==='/draw'){
+      project_id=-1;
+      frame_ids=[-1];
+      start_project();
+      R=20;G=20;B=20;
+    }
+  },[location]);
+  return(<div></div>);
+}
+
+function MainDraw(){
+  [isMouseDown,setIsMouseDown]=useState(false);
+  [interactingItemIds,setInteractingItemIds]=useState([]);
+  [interactingCoords,setInteractingCoords]=useState([]);
+  [inCanvas,setInCanvas]=useState(false);
+  console.log(importing.decode);
+  if(importing.decode.email==='FAILURE'){
+    return(
+      <div>
+        You need to log in before you draw!<br/>
+        <Link to='/'>
+          <button>Main Menu</button>
+        </Link>
+      </div>
+    );
+  }
   const grid_container={
     display: 'grid',
     justifyContent: 'center',
@@ -261,11 +290,6 @@ function App(){
     height: 'fit-content',
     margin: '0 auto',
   };
-
-  [isMouseDown,setIsMouseDown]=useState(false);
-  [interactingItemIds,setInteractingItemIds]=useState([]);
-  [interactingCoords,setInteractingCoords]=useState([]);
-  [inCanvas,setInCanvas]=useState(false);
 
   const handleMouseDown = () => {
     setIsMouseDown(true);
@@ -365,6 +389,49 @@ function App(){
   );
 
   return result;
+}
+
+function Menu(){
+  var result;
+  if(importing.decode.email==='FAILURE'){
+    result=(
+      <div>
+        <Link to='/login'>
+          <button>log in</button>
+        </Link><br/>
+        <Link to='/register'>
+          <button>register</button>
+        </Link>
+      </div>
+    );
+  }
+  else{
+    result=(
+      <div>
+        Logged in as {importing.decode.email}<br/>
+        <Link to='/draw'>
+          <button>draw</button>
+        </Link><br/>
+        <button onClick={function(){Cookies.remove('sessionToken');window.location.reload()}}>log out</button>
+      </div>
+    );
+  }
+  return result;
+}
+
+function App(){
+  
+  return(
+    <Router>
+      <Routes>
+        <Route path='/' element={<Menu/>}/>
+        <Route path="/draw" element={<MainDraw/>}/>
+        <Route path="/register" element={<importing.Register/>}/>
+        <Route path="/login" element={<importing.Login/>}/>
+      </Routes>
+      <Component></Component>
+    </Router>
+  );
 }
 
 export default App;
