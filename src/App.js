@@ -45,20 +45,19 @@ var project_id;
 var frame_ids=[];
 var deleted_frames=[];
 
-function start_project(){
+async function start_project(){
   var data={'email_user':importing.decode.email,'name':'unnamed'};
-  fetch('http://localhost:5000/animations',{
+  var response=await fetch('http://localhost:5000/animations',{
     method:'POST',
     body:JSON.stringify(data),
     headers:{
       'Content-Type':'application/json'
     }
-  }).then(response=>response.text())
-  .then(text=>{
-    project_id=parseInt(text);
-    console.log(project_id);
-    saveFrame(0);
-  })
+  });
+  var text=await response.text();
+  project_id=parseInt(text);
+  console.log(project_id);
+  saveFrame(0);
 }
 
 function get_by_id(){
@@ -69,7 +68,7 @@ function get_by_id(){
   })
 }
 
-function saveFrame(frame_n){ // mensaje para val: no
+async function saveFrame(frame_n){ // mensaje para val: no
   var str="";
   for(let i=0;i<n;i++){
     for(let j=0;j<m;j++){
@@ -82,19 +81,18 @@ function saveFrame(frame_n){ // mensaje para val: no
     data['id']=frame_ids[frame_n];
     method='PUT';
   }
-  fetch('http://localhost:5000/frames',{
+  var response=await fetch('http://localhost:5000/frames',{
     method:method,
     body:JSON.stringify(data),
     headers:{
       'Content-Type':'application/json'
     }
-  }).then(response=>response.text())
-  .then(text=>{
-    frame_ids[frame_n]=text;
   })
+  frame_ids[frame_n]=await response.text();
+  console.log(frame_ids);
 }
 
-function saveProject(){
+async function saveProject(){
   var ids=1;
   for(let i=0;i<n;i++){
     for(let j=0;j<m;j++){
@@ -104,7 +102,7 @@ function saveProject(){
     }
   }
   for(let i=0;i<matrices.length;i++){
-    saveFrame(i);
+    await saveFrame(i);
   }
 }
 
@@ -161,7 +159,6 @@ function changeFrame(frame_n){
       id++;
     }
   }
-  console.log(matrices[currentFrame]);
   currentFrame=frame_n;
 }
 
@@ -175,7 +172,7 @@ function newFrame(){ //para añadir nuevos frames
   saveProject();
 }
 
-var R;var G;var B; //colores actuales del 'pincel'
+var R=20;var G=20;var B=20; //colores actuales del 'pincel'
 
 var isMouseDown;var setIsMouseDown;
 var interactingItemIds=[];var setInteractingItemIds;
@@ -252,10 +249,20 @@ function Component({}){
       project_id=-1;
       frame_ids=[-1];
       start_project();
-      R=20;G=20;B=20;
     }
   },[location]);
   return(<div></div>);
+}
+
+var newFrameEnabled=true;
+
+function handleNewFrame(){
+  if(!newFrameEnabled) return;
+  newFrame();
+  newFrameEnabled=false;
+  setTimeout(()=>{
+    newFrameEnabled=true;
+  },200);
 }
 
 function MainDraw(){
@@ -263,7 +270,6 @@ function MainDraw(){
   [interactingItemIds,setInteractingItemIds]=useState([]);
   [interactingCoords,setInteractingCoords]=useState([]);
   [inCanvas,setInCanvas]=useState(false);
-  console.log(importing.decode);
   if(importing.decode.email==='FAILURE'){
     return(
       <div>
@@ -302,8 +308,8 @@ function MainDraw(){
       const y=(id[0]-1)%m;
       interactingCoords.push([x,y,rgb2_to_ids[B],rgb2_to_ids[id[1]]]);
     });
-    console.log(interactingItemIds);
-    console.log(interactingCoords);
+    //console.log(interactingItemIds);
+    //console.log(interactingCoords);
     history_queue.push(interactingCoords); //acabar el historial para ctrl+z y ctrl+y
     setInteractingItemIds([]);
     setInteractingCoords([]);
@@ -315,7 +321,7 @@ function MainDraw(){
 
   const handleKeyDown=(event)=>{
     if(event.key==='Enter'){
-      newFrame();
+      handleNewFrame();
     }
     else if(event.key==='ArrowRight'){ //nextframe
       changeFrame(currentFrame+1);
@@ -376,7 +382,7 @@ function MainDraw(){
           <br/>
           <button onClick={loadProject}>load</button>
           <br/>
-          <button onClick={newFrame}>new frame</button>
+          <button onClick={handleNewFrame}>new frame</button>
           <br/>
           <button onClick={function(){changeFrame(currentFrame+1)}}>next frame</button>
           <br/>
@@ -420,7 +426,6 @@ function Menu(){
 }
 
 function App(){
-  
   return(
     <Router>
       <Routes>
@@ -429,7 +434,7 @@ function App(){
         <Route path="/register" element={<importing.Register/>}/>
         <Route path="/login" element={<importing.Login/>}/>
       </Routes>
-      <Component></Component>
+      <Component/>
     </Router>
   );
 }
