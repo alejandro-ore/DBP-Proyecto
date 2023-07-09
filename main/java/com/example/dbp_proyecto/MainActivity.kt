@@ -12,26 +12,44 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.RequestFuture
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.dbp_proyecto.databinding.ActivityMainBinding
+import org.json.JSONArray
+import java.util.concurrent.ExecutionException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private val url="http://192.168.1.15:5000/"
+    private lateinit var jsonArray:JSONArray
 
-    fun fetch(url:String){
+    fun getAnimations(){
         val textResult=findViewById<TextView>(R.id.textview_first)
         val queue= Volley.newRequestQueue(this)
         val jsonRequest=JsonArrayRequest(
-            Request.Method.GET,url,null,
+            Request.Method.GET,url+"animations",null,
             {response->
-                textResult.text=response.toString()
+                var xd=""
+                jsonArray=response
+
+                for(i in 0 until jsonArray.length()){
+                    val item=jsonArray.getJSONObject(i)
+                    xd+=item.getString("email_user")+"\n"
+                }
+
+                textResult.text=xd
             },
             {error->
                 textResult.text=error.toString()
@@ -58,8 +76,7 @@ class MainActivity : AppCompatActivity() {
                 .setAnchorView(R.id.fab)
                 .setAction("Action", null).show()
         }
-        val url="http://192.168.1.15:5000/users"
-        fetch(url)
+        getAnimations()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -67,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
-
+/*
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -76,7 +93,7 @@ class MainActivity : AppCompatActivity() {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
-    }
+    }*/
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
