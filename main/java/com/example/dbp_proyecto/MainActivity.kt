@@ -1,5 +1,6 @@
 package com.example.dbp_proyecto
 
+import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import com.google.android.material.snackbar.Snackbar
@@ -29,45 +30,52 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
-class MainActivity : AppCompatActivity() {
+class Utility{
+    companion object{
+        private val url="http://192.168.1.15:5000/"
+        private lateinit var jsonArray:JSONArray
 
+        fun fetch(activity:Activity,textView:TextView,method:String){
+            val queue=Volley.newRequestQueue(textView.context)
+            val jsonRequest=JsonArrayRequest(
+                Request.Method.GET,url+method,null,
+                {response->
+                    var get=""
+                    jsonArray=response
+
+                    if(method==="animations") {
+                        for (i in 0 until jsonArray.length()) {
+                            val item = jsonArray.getJSONObject(i)
+                            get+= "animation: " + item.getString("name") + ", "
+                            get+= "author: " + item.getString("email_user") + "\n"
+                        }
+                    }
+                    else if(method==="frames"){
+                        for (i in 0 until jsonArray.length()) {
+                            val item = jsonArray.getJSONObject(i)
+                            get+="animation id: "+item.getString("id_anim")+", "
+                            get+="frame number: " + item.getString("frame_n") + "\n"
+                        }
+                    }
+
+                    activity.runOnUiThread{
+                        textView.text=get
+                    }
+                },
+                {error->
+                    activity.runOnUiThread{
+                        textView.text=error.toString()
+                    }
+                }
+            )
+            queue.add(jsonRequest)
+        }
+    }
+}
+
+class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private val url="http://192.168.1.15:5000/"
-    private lateinit var jsonArray:JSONArray
-
-    fun getAnimations(method:String){
-        val textResult=findViewById<TextView>(R.id.textview_first)
-        val queue= Volley.newRequestQueue(this)
-        val jsonRequest=JsonArrayRequest(
-            Request.Method.GET,url+method,null,
-            {response->
-                var get=""
-                jsonArray=response
-
-                if(method==="animations") {
-                    for (i in 0 until jsonArray.length()) {
-                        val item = jsonArray.getJSONObject(i)
-                        get+= "animation: " + item.getString("name") + ", "
-                        get+= "author: " + item.getString("email_user") + "\n"
-                    }
-                }
-                else if(method==="frames"){
-                    for (i in 0 until jsonArray.length()) {
-                        val item = jsonArray.getJSONObject(i)
-                        get+="animation id: "+item.getString("id_anim")+", "
-                        get+="frame number: " + item.getString("frame_n") + "\n"
-                    }
-                }
-
-                textResult.text=get
-            },
-            {error->
-                textResult.text=error.toString()
-            }
-        )
-        queue.add(jsonRequest)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -87,7 +95,9 @@ class MainActivity : AppCompatActivity() {
                 .setAnchorView(R.id.fab)
                 .setAction("Action", null).show()
         }
-        getAnimations("animations")
+
+        val textView=findViewById<TextView>(R.id.textview_first)
+        Utility.fetch(this,textView,"animations")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -110,11 +120,5 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
-    }
-
-    companion object {
-        fun getAnimations(s: String) {
-            getAnimations(s)
-        }
     }
 }
