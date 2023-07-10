@@ -25,6 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".FirstFragment"></activity>
+        <activity android:name=".SecondFragment"></activity>
     </application>
 
 </manifest>

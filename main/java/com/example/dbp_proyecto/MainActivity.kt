@@ -11,6 +11,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import com.android.volley.Request
@@ -35,21 +36,31 @@ class MainActivity : AppCompatActivity() {
     private val url="http://192.168.1.15:5000/"
     private lateinit var jsonArray:JSONArray
 
-    fun getAnimations(){
+    fun getAnimations(method:String){
         val textResult=findViewById<TextView>(R.id.textview_first)
         val queue= Volley.newRequestQueue(this)
         val jsonRequest=JsonArrayRequest(
-            Request.Method.GET,url+"animations",null,
+            Request.Method.GET,url+method,null,
             {response->
-                var xd=""
+                var get=""
                 jsonArray=response
 
-                for(i in 0 until jsonArray.length()){
-                    val item=jsonArray.getJSONObject(i)
-                    xd+=item.getString("email_user")+"\n"
+                if(method==="animations") {
+                    for (i in 0 until jsonArray.length()) {
+                        val item = jsonArray.getJSONObject(i)
+                        get+= "animation: " + item.getString("name") + ", "
+                        get+= "author: " + item.getString("email_user") + "\n"
+                    }
+                }
+                else if(method==="frames"){
+                    for (i in 0 until jsonArray.length()) {
+                        val item = jsonArray.getJSONObject(i)
+                        get+="animation id: "+item.getString("id_anim")+", "
+                        get+="frame number: " + item.getString("frame_n") + "\n"
+                    }
                 }
 
-                textResult.text=xd
+                textResult.text=get
             },
             {error->
                 textResult.text=error.toString()
@@ -76,7 +87,7 @@ class MainActivity : AppCompatActivity() {
                 .setAnchorView(R.id.fab)
                 .setAction("Action", null).show()
         }
-        getAnimations()
+        getAnimations("animations")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -99,5 +110,11 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
+    }
+
+    companion object {
+        fun getAnimations(s: String) {
+            getAnimations(s)
+        }
     }
 }
