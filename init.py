@@ -83,8 +83,6 @@ def get_animations():
         db.session.add(frame)
         db.session.commit()
         return str(frame.id)
-    if request.method=='PUT':
-        pass #TODO
     return 'FAILURE'
     
 @app.route('/animations/<id>',methods=['GET'])
