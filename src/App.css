@@ -46,9 +46,121 @@ body{
 }
 
 .ui_container{
-  display: grid;
+  display:-ms-grid;
   margin-top: 12px;
-  grid-template-columns: auto auto auto;
   outline: none;
-  box-shadow: 0 0 0 0px;
-};
+  flex-direction: row;
+}
+
+.tool_container{
+  flex-direction:column;
+  align-items: flex-end;
+  position: absolute;
+  left: 0px;  
+  right: 20px;
+  width: 20%;
+  height: 95%;
+}
+
+.toolbox{
+  width: 50%;
+  height: 77%;
+  border-radius: 0px 20px 20px 0px;
+  background: #EB9C3F;
+  flex-shrink: 10;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  display: flex;
+}
+
+.drawtools{
+  background: #F1DDA8;
+  width: 70%;
+  height: 50%;
+  flex-shrink: 10;
+  border-radius: 20px;
+  align-items: center;
+  text-align: center;
+  justify-content:center;
+  flex-direction: column;
+  display:flex;
+}
+
+.gato{
+  top: 0;
+  left: 0;
+  margin: 8%;
+  box-shadow: 0px 6px 5px 0px rgba(0, 0, 0, 0.25);
+}
+
+.delf{
+  width: 52.326px;
+  height: 52.326px;
+  flex-shrink: 0;
+  margin:5%;
+}
+
+.newf{
+  width: 63px;
+  height: 60px;
+  flex-shrink: 0;
+  margin: 5%;
+}
+
+.flipdraw{
+  position: absolute;
+  flex-shrink: 10px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: line;
+  display: flex;
+  left:0px;
+  top:0px;
+}
+
+.container2{
+  height: 40%;
+  width: 20%;
+  flex-shrink: 10;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: line;
+  display: flex;
+  position: absolute;
+  right: 0px;
+  top: 20px;
+  margin: 10px;
+  
+}
+
+
+.container1{
+  height: 40%;
+  width: 100%;
+  background-color:#EB9C3F;
+  flex-shrink: 10;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: line;
+  display: flex;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 20px;
+  
+}
+
+.painttool{
+  top: 0;
+  left: 0;
+  margin: 10%;
+}
+.savetool{
+  bottom: 0px;
+  margin: 10%;
+}

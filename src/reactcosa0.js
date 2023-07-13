@@ -1,16 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {BrowserRouter as Router,Routes,Route,Link,useLocation} from 'react-router-dom';
 import {ReactComponent as Gato} from './Catlogo.svg';
-import {ReactComponent as Delf} from './DeleteFrame.svg';
-import {ReactComponent as Newf} from './NewFrame.svg';
-import {ReactComponent as Brush} from './Brush.svg';
-import {ReactComponent as Bucket} from './Bucket.svg';
-import {ReactComponent as Erraser} from './Erraser.svg';
-import {ReactComponent as Save} from './save.svg';
-import {ReactComponent as Load} from './load.svg';
-import {ReactComponent as Flipdraw} from './flipdraw.svg';
-import {ReactComponent as Prev} from './prev.svg';
-import {ReactComponent as Next} from './next.svg';
 import Cookies from 'js-cookie';
 import importing from './users';
 import './App.css';
@@ -24,6 +14,8 @@ var matrices=[Array.from(
 )];
 
 var currentFrame=0; //frame actual
+
+var size;
 
 const colors={
   '0':'rgb(255,255,255)', //blanco
@@ -93,7 +85,7 @@ async function saveFrame(frame_n){ // mensaje para val: no
   }
   var method='POST';
   var data={'data':str,'id_anim':project_id,'frame_n':frame_n};
-  if(frame_n>=0&&frame_n<frame_ids.length&&frame_ids[frame_n]!==-1){
+  if(frame_n>=0&&frame_n<frame_ids.length&&frame_ids[frame_n]!=-1){
     data['id']=frame_ids[frame_n];
     method='PUT';
   }
@@ -188,17 +180,8 @@ function newFrame(){ //para añadir nuevos frames
   saveProject();
 }
 
-var R=20;var G=20;var B=20; //color primario
-var R2=255;var G2=255;var B2=255; //color secundario
+var R=20;var G=20;var B=20; //colores actuales del 'pincel'
 
-if(localStorage.getItem('R')!==null){
-  R=localStorage.getItem('R');
-  G=localStorage.getItem('G');
-  B=localStorage.getItem('B');
-}
-
-
-var mouseNum=0;
 var isMouseDown;var setIsMouseDown;
 var interactingItemIds=[];var setInteractingItemIds;
 var interactingCoords=[];var setInteractingCoords;
@@ -210,12 +193,8 @@ var Ysize=300; var setYsize;
 
 var history_queue=[];var undo_queue=[]; //ctrl+z
 
-
-var color=5;
-
 function changeColor(){
-  if(color===5) color=1;
-  else color++;
+  var color=document.getElementById('color_pick').value;
   var arr=rgb(colors[`${color}`]);
   R=arr[0];G=arr[1];B=arr[2];
 }
@@ -223,16 +202,7 @@ function changeColor(){
 function colorSwitch(id){
     var pixel=document.getElementById(id);
     if(pixel.className==="grid-container") return;
-    if(mouseNum===1){
-      pixel.style.setProperty("background",`rgb(${R},${G},${B})`);
-      localStorage.setItem('R',R);
-      localStorage.setItem('G',G);
-      localStorage.setItem('B',B);
-    }
-    if(mouseNum===2){
-      pixel.style.setProperty("background",`rgb(${R2},${G2},${B2})`);
-    }
-    console.log(mouseNum);
+    pixel.style.setProperty("background",`rgb(${R},${G},${B})`);
 }
 
 function clearCanvas(){
@@ -247,44 +217,62 @@ function FrameCount({}){
   );
 }
 
-function Item({item_id}){
-  [isMouseDown,setIsMouseDown]=useState(false);
-  [interactingItemIds,setInteractingItemIds]=useState([]);
+// ...
 
-  const handleMouseEnter=(itemId)=>{
-    if(isMouseDown&&inCanvas){
-      var got_color=document.getElementById(itemId).style.getPropertyValue('background-color');
-      setInteractingItemIds((prevItemIds)=>[...prevItemIds,[itemId,rgb(got_color)[2]]]);
+function MainDraw() {
+  // ...
+
+  const handleMouseEnter = (itemId) => {
+    if (isMouseDown && inCanvas) {
+      var got_color = document.getElementById(itemId).style.getPropertyValue('background-color');
+      setInteractingItemIds((prevItemIds) => [...prevItemIds, [itemId, rgb(got_color)[2]]]);
       colorSwitch(itemId);
     }
   };
+  // ...
 
+  return (
+    // ...
+    <Item
+      item_id={item_id}
+      isMouseDown={isMouseDown}
+      inCanvas={inCanvas}
+      handleMouseEnter={handleMouseEnter}
+      // ... pass other necessary props here
+    />
+    // ...
+  );
+}
 
+function Item({ item_id, isMouseDown, inCanvas, handleMouseEnter }) {
+  const x = parseInt((item_id - 1) / m);
+  const y = (item_id - 1) % m;
 
-  const x=parseInt((item_id-1)/m);
-  const y=(item_id-1)%m;
-  
-  var grid_item={
-    backgroundColor:`rgb(
+  var grid_item = {
+    backgroundColor: `rgb(
       ${matrices[currentFrame][x][y][0]},
       ${matrices[currentFrame][x][y][1]},
       ${matrices[currentFrame][x][y][2]}
     )`,
-    width:pixelSize,
-    height:pixelSize,
-    userSelect:'none',
-    textAlign:'center',
-    border:'0.01px solid rgba(136, 255, 233,25)',
+    width: pixelSize,
+    height: pixelSize,
+    userSelect: 'none',
+    textAlign: 'center',
+    border: '0.01px solid rgba(136, 255, 233,25)',
   };
 
-  return(
-    <div className="grid-item"
+  return (
+    <div
+      className="grid-item"
       style={grid_item}
       id={item_id}
-      onMouseEnter={()=>handleMouseEnter(item_id)}
+      onMouseEnter={() => handleMouseEnter(item_id)}
     ></div>
   );
 }
+
+// ...
+
 
 function Component({}){
   var location=useLocation();
@@ -351,7 +339,6 @@ function MainDraw() {
     }
 
   const grid_container = {
-    border: '10px solid rgba(248, 216, 129, 255)',
     display: 'grid',
     justifyContent: 'center',
     userSelect: 'none',
@@ -363,30 +350,26 @@ function MainDraw() {
     width: `${Xsize}px`,  // Use pixelSize variable
     height: `${Ysize}px`, // Use pixelSize variable
     padding: '0px',
+    border: '5px solid rgba(248, 216, 129, 255)',
     borderRadius: '5px',
     margin: '0 auto',
     position: 'relative',
   };
   
 
-  const handleMouseDown = (event) => {
-    if(event.button===0){
-      mouseNum=1;
-    }
-    else if(event.button===2){
-      mouseNum=2;
-    }
+  const handleMouseDown = () => {
     setIsMouseDown(true);
   };
 
   const handleMouseUp = () => {
-    mouseNum=0;
     setIsMouseDown(false);
     interactingItemIds.forEach(id=>{
       const x=parseInt((id[0]-1)/m);
       const y=(id[0]-1)%m;
       interactingCoords.push([x,y,rgb2_to_ids[B],rgb2_to_ids[id[1]]]);
     });
+    //console.log(interactingItemIds);
+    //console.log(interactingCoords);
     history_queue.push(interactingCoords); //acabar el historial para ctrl+z y ctrl+y
     setInteractingItemIds([]);
     setInteractingCoords([]);
@@ -406,10 +389,14 @@ function MainDraw() {
     else if(event.key==='ArrowLeft'){ //prevframe
       changeFrame(currentFrame-1);
     }
-  };
-
-  const handleContextMenu=(event)=>{
-    event.preventDefault();
+    else if(event.ctrlKey){ //shortcut keybinds
+      if(event.key==='z'){
+        alert('ctrl+z');
+      }
+      else if(event.key==='y'){
+        alert('ctrl+y');
+      }
+    }
   };
 
   const renderItems=()=>{
@@ -419,49 +406,46 @@ function MainDraw() {
       for(let j=0;j<m;j++){
         items[item_id]=(
           <Item item_id={item_id+1} key={item_id+1}/>);
-
         item_id++;
       }
     }
-    return items;
+     ;
   };
 
   var result=(
     <>
       <title>paint test</title>
-      <title>paint test</title>
       <div className='ui_container'
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onKeyDown={handleKeyDown}
-        onContextMenu={handleContextMenu}
         tabIndex={0}
       >
-        <div>
-          <div className='tool_container'>
-            <Gato className='gato'></Gato>
-            <div className='toolbox'>
-              <Delf className='delf' onClick={clearCanvas}></Delf>
-              <Newf className='newf' onClick={handleNewFrame}></Newf>
-              <div className= 'drawtools'>
-                <Erraser className='painttool'></Erraser>
-                <Brush className='painttool' onClick={changeColor}></Brush>
+          <div>
+            <div className='tool_container'>
+              <Gato className='gato'></Gato>
+              <div className='toolbox'>
+                tools
               </div>
             </div>
-          </div>
           <div className='grid-container' style={grid_container}
               onMouseEnter={function(){isIncanvas(true)}}
               onMouseLeave={function(){isIncanvas(false)}}
             >
               {renderItems().map((item)=>item)}
           </div>
-          <div className= 'container2'>
-            <div className= 'container1'>
-              <Save onClick={saveProject} className='savetool'></Save>
-              <Load onClick={loadProject} className='savetool'></Load>
-            </div>
-          <Flipdraw className= 'flipdraw'></Flipdraw>
-          </div>
+          color picker <input type="number" defaultValue={0} min={0} max={5} id="color_pick" />
+          <br/>
+          <button onClick={changeColor}>change color</button>
+          <br/>
+          <button onClick={clearCanvas}>clear canvas</button>
+          <br/>
+          <button onClick={saveProject}>save</button>
+          <br/>
+          <button onClick={loadProject}>load</button>
+          <br/>
+          <button onClick={handleNewFrame}>new frame</button>
+          <br/>
           <button onClick={function(){changeFrame(currentFrame+1)}}>next frame</button>
           <br/>
           <button onClick={function(){changeFrame(currentFrame-1)}}>previous frame</button>
@@ -471,8 +455,14 @@ function MainDraw() {
       </div>
     </>
   );
-  
-  return result;
+
+  return(
+    <Item
+    item_id={item_id}
+    isMouseDown={isMouseDown}
+    inCanvas={inCanvas}
+    handleMouseEnter={handleMouseEnter}/>
+  );
 }
 
 function Menu(){
