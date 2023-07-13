@@ -12,17 +12,27 @@
         tools:layout="@layout/fragment_first">
 
         <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            android:id="@+id/action_firstFragment_credits"
+            app:destination="@id/credits"/>
+
     </fragment>
+
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.example.dbp_proyecto.SecondFragment"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/credits"
+        android:name="com.example.dbp_proyecto.Credits"
+        tools:layout="@layout/credits">
 
         <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            android:id="@+id/action_credits_firstFragment"
+            app:destination="@id/FirstFragment"/>
+
     </fragment>
+
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.example.dbp_proyecto.MainActivity"
+        android:label="Main Activity">
+
+    </activity>
 
 </navigation>

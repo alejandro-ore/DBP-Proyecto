@@ -6,4 +6,9 @@
     </style>
 
     <style name="Theme.DBPProyecto" parent="Base.Theme.DBPProyecto" />
+    <!-- Base application theme. -->
+    <style name="Base.Base.Theme.DBPProyecto" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
 </resources>
