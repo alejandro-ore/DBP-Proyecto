@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from flask import Flask, jsonify,  request, render_template, redirect
+from flask import Flask, jsonify,  request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
@@ -117,6 +117,15 @@ def get_frame_id(id):
     data=Frame.query.get_or_404(id)
     return jsonify(data)
 
+@app.route('/frames/animations/<id_animation>',methods=['GET'])
+def get_frame_by_animation(id_animation):
+    data=Frame.query.filter_by(id_anim=id_animation).all()
+    return jsonify(data)
+
 with app.app_context():
     db.drop_all()
     db.create_all()
+
+# flask --app init.py run (localhost:5000)
+# npm start (localhost:3000)
+# (react hara requests a localhost:5000)
