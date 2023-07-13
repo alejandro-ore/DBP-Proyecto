@@ -19,7 +19,7 @@ import com.android.volley.toolbox.*
 import android.graphics.*
 import android.widget.FrameLayout
 
-const val url="http://192.168.1.15:5000/"
+const val url="http://192.168.43.201:5000/" // cambiar al url donde esta corriendo flask para usar
 
 fun clamp(value: Int, min: Int, max: Int): Int {
     return when {
@@ -32,8 +32,8 @@ fun clamp(value: Int, min: Int, max: Int): Int {
 class PixelScreenView(context: Context) : View(context) {
     private val pixelPaint = Paint()
 
-    private val n=160
-    private val m=90
+    private val n=80
+    private val m=60
 
     private var pixelData="5".repeat(m*n)
 
