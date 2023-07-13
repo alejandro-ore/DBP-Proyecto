@@ -125,7 +125,3 @@ def get_frame_by_animation(id_animation):
 with app.app_context():
     db.drop_all()
     db.create_all()
-
-# flask --app init.py run (localhost:5000)
-# npm start (localhost:3000)
-# (react hara requests a localhost:5000)
