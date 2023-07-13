@@ -47,7 +47,7 @@ class Frame(db.Model):
     id_anim=db.Column(db.Integer,db.ForeignKey('animation.id'))
     anim=db.relationship('Animation',backref='frames')
 
-@app.route('/users',methods=['GET','POST','PUT'])
+@app.route('/users',methods=['GET','POST'])
 def get_users():
     if request.method=='GET':
         users=User.query.all()
@@ -58,8 +58,6 @@ def get_users():
         db.session.add(user)
         db.session.commit()
         return json['email']
-    if request.method=='PUT':
-        pass #TODO
     return 'FAILURE'
 
 @app.route('/users/<email>',methods=['GET'])
