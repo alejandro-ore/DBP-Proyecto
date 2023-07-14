@@ -15,6 +15,7 @@ import Cookies from 'js-cookie';
 import importing from './users';
 import './App.css';
 
+const url=importing.url
 
 //matriz de imagen
 const n=60;const m=80;
@@ -58,7 +59,7 @@ var deleted_frames=[];
 
 async function start_project(){
   var data={'email_user':importing.decode.email,'name':'unnamed'};
-  var response=await fetch('http://localhost:5000/animations',{
+  var response=await fetch(url+'animations',{
     method:'POST',
     body:JSON.stringify(data),
     headers:{
@@ -67,24 +68,19 @@ async function start_project(){
   });
   var text=await response.text();
   project_id=parseInt(text);
-  console.log(project_id);
+  console.log(text);
   saveFrame(0);
 }
 
-
-
-
-
-
 function get_by_id(){
-  fetch('http://localhost:5000/frames')
+  fetch(url+'frames')
   .then(response=>response.json())
   .then(frame=>{
     return frame.data;
   })
 }
 
-async function saveFrame(frame_n){ // mensaje para val: no
+async function saveFrame(frame_n){
   var str="";
   for(let i=0;i<n;i++){
     for(let j=0;j<m;j++){
@@ -97,7 +93,7 @@ async function saveFrame(frame_n){ // mensaje para val: no
     data['id']=frame_ids[frame_n];
     method='PUT';
   }
-  var response=await fetch('http://localhost:5000/frames',{
+  var response=await fetch(url+'frames',{
     method:method,
     body:JSON.stringify(data),
     headers:{
@@ -123,7 +119,7 @@ async function saveProject(){
 }
 
 function loadFrame(frame_n){
-  fetch(`http://localhost:5000/frames/${frame_ids[frame_n]}`)
+  fetch(url+`frames/${frame_ids[frame_n]}`)
   .then(response=>response.json())
   .then(frame=>{
     var data=frame.data;
@@ -243,7 +239,7 @@ function clearCanvas(){
 
 function FrameCount({}){
   return(
-    <div id='frameCount'>{currentFrame+1}/{matrices.length}</div>
+    <div style={{fontSize:25}} id='frameCount'>{currentFrame+1}/{matrices.length}</div>
   );
 }
 
@@ -258,8 +254,6 @@ function Item({item_id}){
       colorSwitch(itemId);
     }
   };
-
-
 
   const x=parseInt((item_id-1)/m);
   const y=(item_id-1)%m;
@@ -307,6 +301,24 @@ function handleNewFrame(){
   setTimeout(()=>{
     newFrameEnabled=true;
   },200);
+}
+
+function Rectangle({_R,_G,_B,w,h}){
+  return(
+    <svg width={w} height={h}>
+      <rect
+        width={300}
+        height={100}
+        style={{
+          fill: `rgb(${_R},${_G},${_B})`,
+          strokeWidth: 3,
+          stroke: "rgb(0,0,0)",
+          borderRadius: "50%",
+          border: "None"
+        }}
+      />
+    </svg>
+  );
 }
 
 function MainDraw() {
@@ -446,6 +458,7 @@ function MainDraw() {
               <div className= 'drawtools'>
                 <Erraser className='painttool'></Erraser>
                 <Brush className='painttool' onClick={changeColor}></Brush>
+                <Rectangle _R={R} _G={G} _B={B} h={50} w={50}/>
               </div>
             </div>
           </div>
@@ -459,14 +472,10 @@ function MainDraw() {
             <div className= 'container1'>
               <Save onClick={saveProject} className='savetool'></Save>
               <Load onClick={loadProject} className='savetool'></Load>
+              <FrameCount/>
             </div>
           <Flipdraw className= 'flipdraw'></Flipdraw>
           </div>
-          <button onClick={function(){changeFrame(currentFrame+1)}}>next frame</button>
-          <br/>
-          <button onClick={function(){changeFrame(currentFrame-1)}}>previous frame</button>
-          <br/>
-          <FrameCount/>
         </div>
       </div>
     </>

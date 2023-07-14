@@ -2,6 +2,8 @@ import React,{useState} from 'react';
 import {BrowserRouter as Router,Routes,Route,Link,useLocation} from 'react-router-dom';
 import Cookies from 'js-cookie';
 
+const url="http://192.168.43.55:5000/"
+
 var token;
 var decode={email:'FAILURE',password:'FAILURE'};
 
@@ -18,7 +20,7 @@ async function cookieCheck(){
         return;
     }
     else{
-        const response=await fetch(`http://localhost:5000/users/${decode.email}`);
+        const response=await fetch(url+`users/${decode.email}`);
         const data=await response.json();
         if(data['password']===decode.password) return;
     }
@@ -27,14 +29,14 @@ async function cookieCheck(){
 await cookieCheck();
 
 async function emailExists(email){
-    const response=await fetch(`http://localhost:5000/users/${email}`);
+    const response=await fetch(url+`users/${email}`);
     const data=await response.json();
     return data['email']!=='FAILURE';
 }
 
 async function postData(email,user,pass){
     var data={'email':email,'username':user,'password':pass};
-    const response=await fetch('http://localhost:5000/users',{
+    const response=await fetch(url+'users',{
         method:'POST',
         body:JSON.stringify(data),
         headers:{
@@ -107,7 +109,7 @@ function Register(){
 }
 
 async function email_pass(email,pass){
-    const response=await fetch(`http://localhost:5000/users/${email}`);
+    const response=await fetch(url+`users/${email}`);
     const data=await response.json();
     console.log(data);
     return data['password']===pass;
@@ -165,6 +167,6 @@ function Login(){
     }
 }
 
-const importing={decode,Register,Login};
+const importing={url,decode,Register,Login};
 
 export default importing;
